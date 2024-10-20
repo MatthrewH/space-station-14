@@ -199,6 +199,7 @@
       - ClothingHeadHatWelding
       - WetFloorSign
       - ClothingHeadHatCone
+      - FreezerElectronics
       - Flare
   - type: EmagLatheRecipes
     emagStaticRecipes:
@@ -351,6 +352,8 @@
       - FauxTileAstroSnow
       - OreBagOfHolding
       - DeviceQuantumSpinInverter
+      - RCD
+      - RCDAmmo
   - type: EmagLatheRecipes
     emagDynamicRecipes:
       - BoxBeanbag
@@ -442,6 +445,7 @@
     - UniformPrinterMachineCircuitboard
     - FloorGreenCircuit
     - FloorBlueCircuit
+    - FloorRedCircuit
     - MicrowaveMachineCircuitboard
     - ReagentGrinderMachineCircuitboard
     - ElectricGrillMachineCircuitboard

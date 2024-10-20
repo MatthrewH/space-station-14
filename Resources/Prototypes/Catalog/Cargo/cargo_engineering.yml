@@ -44,7 +44,7 @@
     sprite: Objects/Tools/cable-coils.rsi
     state: coilall-30
   product: CrateEngineeringCableBulk
-  cost: 750
+  cost: 600
   category: cargoproduct-category-name-engineering
   group: market
 
@@ -105,26 +105,6 @@
     state: icon
   product: CrateEvaKit
   cost: 5000
-  category: cargoproduct-category-name-engineering
-  group: market
-
-- type: cargoProduct
-  id: EngineeringRCDAmmo
-  icon:
-    sprite: Objects/Tools/rcd.rsi
-    state: ammo
-  product: CrateRCDAmmo
-  cost: 2500
-  category: cargoproduct-category-name-engineering
-  group: market
-
-- type: cargoProduct
-  id: EngineeringRCD
-  icon:
-    sprite: Objects/Tools/rcd.rsi
-    state: icon
-  product: CrateRCD
-  cost: 800
   category: cargoproduct-category-name-engineering
   group: market
 

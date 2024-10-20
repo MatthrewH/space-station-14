@@ -495,3 +495,197 @@ Entries:
     type: Add
   id: 74
   time: '2024-09-20T05:40:00.0000000+00:00'
+- author: Dutch-VanDerLinde
+  changes:
+  - message: Added underwear and undershirt markings!
+    type: Add
+  id: 75
+  time: '2024-09-26T05:06:50.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Coco the cargorilla has finished her training
+    type: Add
+  id: 75
+  time: '2024-09-26T05:09:20.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Wheelchair bell now emits a signal to connect things up with
+    type: Add
+  id: 76
+  time: '2024-09-27T08:55:20.0000000+00:00'
+- author: Callmore
+  changes:
+  - message: Prefered item quick store locations can be created again.
+    type: Fix
+  id: 77
+  time: '2024-09-27T09:45:20.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Hexadecimal radio channel for all silicons including cyborgs
+    type: Add
+  id: 78
+  time: '2024-09-27T10:20:20.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Fixed AI spawning at arrivals
+    type: Fix
+  id: 79
+  time: '2024-09-27T17:30:20.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: When driving a vehicle you now fall off when crit
+    type: Add
+  - message: Fixed mispredict with vehicles access
+    type: Fix
+  id: 80
+  time: '2024-09-28T14:50:20.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Janitor cyborgs and the janicarts can now clean puddles below them
+    type: Add
+  id: 81
+  time: '2024-09-30T15:15:20.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Obsessed now show up in round end screen
+    type: Fix
+  id: 82
+  time: '2024-09-30T17:25:20.0000000+00:00'
+- author: EggExe
+  changes:
+  - message: Cockroaches can now be squished stepping on them
+    type: Add
+  id: 83
+  time: '2024-10-01T23:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Lowered the ammount of footprints produced by one puddle
+    type: Tweak
+  - message: No slips do not leave footprints
+    type: Tweak
+  id: 84
+  time: '2024-10-02T16:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Removed kessler syndrome
+    type: Remove
+  id: 85
+  time: '2024-10-03T20:10:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Mir is now in the map rotation
+    type: Add
+  id: 86
+  time: '2024-10-04T21:40:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Small creatures can now enter atmospheric pipes and crawl inside them
+    type: Add
+  id: 87
+  time: '2024-10-05T02:32:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: RCDs are no longer round start
+    type: Remove
+  - message: RCDs are now unlocked under the advanced tools research
+    type: Tweak
+  id: 88
+  time: '2024-10-08T00:10:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Atmos sell prices have been reverted to their previous price
+    type: Tweak
+  - message: Frezon production is back to its previous mixture
+    type: Tweak
+  id: 89
+  time: '2024-10-08T01:15:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Readded medibot and cleanbot sentience
+    type: Add
+  id: 90
+  time: '2024-10-08T02:40:00.0000000+00:00'
+- author: yuitop
+  changes:
+  - message: Sentient medibot can now inject
+    type: Add
+  id: 91
+  time: '2024-10-08T02:40:00.0000000+00:00'
+- author: lzk228
+  changes:
+  - message: Bots now can examine, use zoom and see their alerts (health & stamina).
+    type: Tweak
+  - message: Added borgs emotes to bots.
+    type: Add
+  id: 92
+  time: '2024-10-08T02:40:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Added the morph midround antag
+    type: Add
+  - message: Added a delay to entering pipe crawling
+    type: Tweak
+  - message: You move faster when vent crawling
+    type: Tweak
+  id: 93
+  time: '2024-10-08T12:30:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Added the trap pipe to stop crawling any further
+    type: Add
+  id: 94
+  time: '2024-10-08T21:20:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Morph now heal more on devouring bodies
+    type: Tweak
+  id: 95
+  time: '2024-10-10T21:20:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Mops can mop up adjacent objects
+    type: Tweak
+  id: 96
+  time: '2024-10-13T07:50:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Mir security has been redone
+    type: Tweak
+  id: 97
+  time: '2024-10-13T08:20:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: There is now a 3rd stage of death, softcritical, allowing you to crawl and whisper.
+    type: Tweak
+  id: 98
+  time: '2024-10-13T16:55:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Clicking on someone crawling now helps them get up
+    type: Add
+  - message: Clicking on someone in soft stun removes all stamina
+    type: Tweak
+  - message: Add poking which is only visible to whoever you poked
+    type: Add
+  - message: Clicking on someone in crit performs CPR reducing their airloss damage
+    type: Add
+  id: 99
+  time: '2024-10-15T09:15:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Added bomb roach to syndi uplink. be free my pretties and blow up command and those who oppose us
+    type: Add
+  id: 100
+  time: '2024-10-19T14:50:00.0000000+00:00'
+- author: Wudanty
+  changes:
+  - message: Added anomaly scanner to utility belt's whitelist'
+    type: Add
+  id: 101
+  time: '2024-10-19T16:00:00.0000000+00:00'
+- author: soins1
+  changes:
+  - message: Personal ai now understands every language
+    type: Tweak
+  id: 102
+  time: '2024-10-20T15:10:00.0000000+00:00'

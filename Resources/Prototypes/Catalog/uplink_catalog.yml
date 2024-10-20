@@ -65,7 +65,7 @@
     Telecrystal: 8
   categories:
   - UplinkWeaponry
-  
+
 - type: listing
   id: UplinkEswordDouble
   name: uplink-esword-double-name
@@ -81,7 +81,7 @@
       blacklist:
         tags:
           - NukeOpsUplink
-  
+
 - type: listing
   id: UplinkEnergyDagger
   name: uplink-edagger-name
@@ -789,7 +789,7 @@
   id: UplinkBinaryTranslatorKey
   name: uplink-binary-translator-key-name
   description: uplink-binary-translator-key-desc
-  icon: { sprite: /Textures/Objects/Devices/encryption_keys.rsi, state: borg_label }
+  icon: { sprite: /Textures/Objects/Devices/encryption_keys.rsi, state: ai_label }
   productEntity: EncryptionKeyBinarySyndicate
   cost:
     Telecrystal: 1
@@ -1009,10 +1009,46 @@
   categories:
   - UplinkDisruption
   conditions:
-    - !type:BuyerWhitelistCondition
+  - !type:BuyerWhitelistCondition
       blacklist:
         components:
           - SurplusBundle
+
+- type: listing
+  id: UplinkAntimovCircuitBoard
+  name: uplink-antimov-law-name
+  description: uplink-antimov-law-desc
+  productEntity: AntimovCircuitBoard
+  discountCategory: usualDiscounts
+  discountDownTo:
+    Telecrystal: 10
+  cost:
+    Telecrystal: 14
+  categories:
+  - UplinkDisruption
+  conditions:
+  - !type:StoreWhitelistCondition
+     blacklist:
+       tags:
+       - NukeOpsUplink
+
+- type: listing
+  id: UplinkNukieAntimovCircuitBoard
+  name: uplink-antimov-law-name
+  description: uplink-antimov-law-desc
+  productEntity: AntimovCircuitBoard
+  discountCategory: rareDiscounts
+  discountDownTo:
+    Telecrystal: 20
+  cost:
+    Telecrystal: 24
+  categories:
+  - UplinkDisruption
+  conditions:
+  - !type:StoreWhitelistCondition
+    whitelist:
+      tags:
+      - NukeOpsUplink
 
 - type: listing
   id: UplinkSurplusBundle
@@ -1064,6 +1100,16 @@
     Telecrystal: 12
   categories:
     - UplinkDisruption
+
+- type: listing
+  id: UplinkCameraBug
+  name: uplink-cameraBug-name
+  description: uplink-cameraBug-desc
+  productEntity: CameraBug
+  cost:
+    Telecrystal: 4
+  categories:
+  - UplinkDisruption
 
 # Allies
 
@@ -1199,6 +1245,20 @@
   description: uplink-mobcat-microbomb-desc
   icon: { sprite: Objects/Devices/communication.rsi, state: old-radio-syndicat }
   productEntity: ReinforcementRadioSyndicateSyndiCat
+  discountCategory: usualDiscounts
+  discountDownTo:
+    Telecrystal: 3
+  cost:
+    Telecrystal: 6
+  categories:
+    - UplinkAllies
+
+- type: listing
+  id: UplinkMobMothroachMicrobomb
+  name: uplink-mobmothroach-microbomb-name
+  description: uplink-mobmothroach-microbomb-desc
+  icon: { sprite: Objects/Devices/communication.rsi, state: old-radio-bombroach }
+  productEntity: ReinforcementRadioSyndicateBombroach
   discountCategory: usualDiscounts
   discountDownTo:
     Telecrystal: 3
@@ -1674,7 +1734,7 @@
     Telecrystal: 2
   categories:
   - UplinkPointless
-  
+
 - type: listing
   id: UplinkSyndicateSegway
   name: uplink-syndicate-segway-crate-name
@@ -1794,6 +1854,17 @@
     Telecrystal: 1
   categories:
     - UplinkPointless
+
+- type: listing
+  id: UplinkSyndicateBusinessCard
+  name: uplink-business-card-name
+  description: uplink-business-card-desc
+  productEntity: SyndicateBusinessCard
+  categories:
+    - UplinkPointless
+  conditions:
+  - !type:ListingLimitedStockCondition
+    stock: 3
 
 # Job Specific
 

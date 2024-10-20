@@ -28,6 +28,12 @@
         amount: 2
         doAfter: 1
 
+    - to: trap
+      steps:
+      - material: Steel
+        amount: 2
+        doAfter: 1
+
     - to: signalvalve
       steps:
       - material: Steel
@@ -102,6 +108,22 @@
 
   - node: valve
     entity: GasValve
+    edges:
+    - to: start
+      conditions:
+      - !type:EntityAnchored
+        anchored: false
+      completed:
+      - !type:SpawnPrototype
+        prototype: SheetSteel1
+        amount: 2
+      - !type:DeleteEntity
+      steps:
+      - tool: Welding
+        doAfter: 1
+
+  - node: trap
+    entity: GasTrap
     edges:
     - to: start
       conditions:

@@ -317,18 +317,12 @@
   - type: TimedDespawn #delete the egg after the chicken spawns
     lifetime: 21
 
-- type: entity # TODO: figure out how to make these guys gib when stepped on
-  name: cockroach
+
+- type: entity
   parent: SimpleMobBase
-  id: MobCockroach
-  description: This station is just crawling with bugs.
+  id: MobBaseCockroach
+  abstract: true
   components:
-  - type: Sprite
-    drawdepth: SmallMobs
-    sprite: Mobs/Animals/cockroach.rsi
-    layers:
-    - map: ["enum.DamageStateVisualLayers.Base"]
-      state: cockroach
   - type: Item
     size: Tiny
   - type: HTN
@@ -415,6 +409,32 @@
   - type: NonSpreaderZombie
   - type: SentienceTarget
     flavorKind: station-event-random-sentience-flavor-organic
+  - type: MeleeWeapon
+    soundHit:
+      path: /Audio/Effects/bite.ogg
+    angle: 0
+    animation: WeaponArcBite
+    damage:
+      types:
+        Piercing: 0
+  - type: CanEnterPipeCrawling
+
+- type: entity
+  name: cockroach
+  parent: MobBaseCockroach
+  id: MobCockroach
+  description: This station is just crawling with bugs.
+  components:
+  - type: Sprite
+    drawdepth: SmallMobs
+    sprite: Mobs/Animals/cockroach.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: cockroach
+  - type: DamageOnStep
+    damage:
+      types:
+        Blunt: 10
 
 - type: entity
   name: glockroach
@@ -450,7 +470,7 @@
 
 - type: entity
   name: mothroach
-  parent: MobCockroach
+  parent: MobBaseCockroach
   id: MobMothroach
   description: This is the adorable by-product of multiple attempts at genetically mixing mothpeople with cockroaches.
   components:
@@ -481,6 +501,7 @@
     insertingState: inserting_mothroach
   - type: MothAccent
   - type: Sprite
+    drawdepth: SmallMobs
     sprite: Mobs/Animals/mothroach/mothroach.rsi
     layers:
     - map: ["enum.DamageStateVisualLayers.Base", "movement"]
@@ -523,8 +544,6 @@
   - type: Damageable
     damageContainer: Biological
     damageModifierSet: Moth
-  - type: Bloodstream
-    bloodReagent: InsectBlood
   - type: Respirator
     damage:
       types:
@@ -613,6 +632,43 @@
   - type: SpeciesLanguage
     understoodLanguages:
     - Moffic
+
+- type: entity
+  name: bombroach
+  description: A happy little fella wanting a hug... But who would stick a brick of C4 on them.
+  parent: [ MobMothroach, MobSyndicateBaseExplosive ]
+  id: MobMothroachSyndicate
+  components:
+  - type: GhostRole
+    prob: 1
+    name: ghost-role-information-bombroach-name
+    allowMovement: true
+    description: ghost-role-information-bombroach-description
+    rules: ghost-role-information-SyndiCat-rules
+    raffle:
+      settings: default
+  - type: Sprite
+    drawdepth: SmallMobs
+    sprite: Mobs/Animals/bombroach.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base", "movement"]
+      state: bombroach
+  - type: SpriteMovement
+    movementLayers:
+      movement:
+        state: bombroach-moving
+    noMovementLayers:
+      movement:
+        state: bombroach
+  - type: DamageStateVisuals
+    states:
+      Alive:
+        Base: bombroach
+      Critical:
+        Base: bombroach_dead
+      Dead:
+        Base: bombroach_dead
+
 
 # Note that the mallard duck is actually a male drake mallard, with the brown duck being the female variant of the same species, however ss14 lacks sex specific textures
 # The white duck is more akin to a pekin or call duck.
@@ -1902,6 +1958,7 @@
       Taco: RatTaco
       Burger: RatBurger
       Skewer: RatSkewer
+  - type: CanEnterPipeCrawling
 
 - type: entity
   parent: MobMouse
@@ -2580,6 +2637,7 @@
       groups:
         Brute: -0.07
         Burn: -0.07
+  - type: CanEnterPipeCrawling
 
 - type: entity
   name: tarantula
@@ -3165,9 +3223,23 @@
         Base: cat2_dead
 
 - type: entity
+  id: MobSyndicateBaseExplosive
+  abstract: true
+  components:
+  - type: GhostTakeoverAvailable
+  - type: AutoImplant
+    implants:
+    - MicroBombImplant
+  - type: ExplosionResistance
+    damageCoefficient: 0.2
+  - type: NpcFactionMember
+    factions:
+    - Syndicate
+
+- type: entity
   name: syndicat
   id: MobCatSyndy
-  parent: MobCatSpace
+  parent: [ MobCatSpace, MobSyndicateBaseExplosive ]
   description: Explosive kitten.
   components:
   - type: Sprite
@@ -3190,15 +3262,6 @@
     rules: ghost-role-information-SyndiCat-rules
     raffle:
       settings: default
-  - type: GhostTakeoverAvailable
-  - type: AutoImplant
-    implants:
-    - MicroBombImplant
-  - type: ExplosionResistance
-    damageCoefficient: 0.2
-  - type: NpcFactionMember
-    factions:
-    - Syndicate
   - type: MeleeWeapon
     altDisarm: false
     angle: 0
@@ -3670,6 +3733,9 @@
   - type: NpcFactionMember
     factions:
     - Passive
+  - type: HTN
+    rootTask:
+      task: RuminantCompound
 
 - type: entity
   name: diona nymph
