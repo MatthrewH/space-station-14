@@ -1,18 +1,25 @@
 using System.Linq;
 using System.Numerics;
+using Content.Shared.Alert;
 using Content.Shared.Body.Components;
+using Content.Shared.Body.Events;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Prototypes;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.DragDrop;
 using Content.Shared.Gibbing.Components;
 using Content.Shared.Gibbing.Events;
 using Content.Shared.Gibbing.Systems;
 using Content.Shared.Inventory;
+using Content.Shared.Radiation.Events;
+using Content.Shared.Rejuvenate;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Body.Systems;
@@ -26,8 +33,11 @@ public partial class SharedBodySystem
      * - Each "connection" is a body part (e.g. arm, hand, etc.) and each part can also contain organs.
      */
 
+    [Dependency] private readonly AlertsSystem _alerts = default!;
+    [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly GibbingSystem _gibbingSystem = default!;
+    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
 
     private const float GibletLaunchImpulse = 8;
@@ -40,8 +50,14 @@ public partial class SharedBodySystem
         SubscribeLocalEvent<BodyComponent, EntRemovedFromContainerMessage>(OnBodyRemoved);
 
         SubscribeLocalEvent<BodyComponent, ComponentInit>(OnBodyInit);
+        SubscribeLocalEvent<BodyComponent, ComponentRemove>(OnBodyRemove);
         SubscribeLocalEvent<BodyComponent, MapInitEvent>(OnBodyMapInit);
         SubscribeLocalEvent<BodyComponent, CanDragEvent>(OnBodyCanDrag);
+        SubscribeLocalEvent<BodyComponent, RejuvenateEvent>(OnRejuvenate);
+        SubscribeLocalEvent<BodyComponent, OnIrradiatedEvent>(OnIrradiatedEvent);
+
+        SubscribeLocalEvent<BodyPartComponent, DamageModifyEvent>(RelayToBody);
+        SubscribeLocalEvent<BodyPartComponent, DamageChangedEvent>(RelayToBody);
     }
 
     private void OnBodyInserted(Entity<BodyComponent> ent, ref EntInsertedIntoContainerMessage args)
@@ -63,6 +79,13 @@ public partial class SharedBodySystem
         if (TryComp(insertedUid, out OrganComponent? organ))
         {
             AddOrgan((insertedUid, organ), ent, ent);
+        }
+
+        // so random stuff doesnt trigger it if the body didnt change
+        if (part != null || organ != null)
+        {
+            var ev = new BodyChangedEvent(ent.Comp);
+            RaiseLocalEvent(ent, ev);
         }
     }
 
@@ -86,23 +109,39 @@ public partial class SharedBodySystem
 
         if (TryComp(removedUid, out OrganComponent? organ))
             RemoveOrgan((removedUid, organ), ent);
+
+        // so random stuff doesnt trigger it if the body didnt change
+        if (part != null || organ != null)
+        {
+            var ev = new BodyChangedEvent(ent.Comp);
+            RaiseLocalEvent(ent, ev);
+        }
     }
 
     private void OnBodyInit(Entity<BodyComponent> ent, ref ComponentInit args)
     {
         // Setup the initial container.
         ent.Comp.RootContainer = Containers.EnsureContainer<ContainerSlot>(ent, BodyRootContainerId);
+        _alerts.ShowAlert(ent.Owner, ent.Comp.Alert);
     }
 
-    private void OnBodyMapInit(Entity<BodyComponent> ent, ref MapInitEvent args)
+    private void OnBodyRemove(Entity<BodyComponent> ent, ref ComponentRemove args)
     {
-        if (ent.Comp.Prototype is null)
+        _alerts.ClearAlert(ent.Owner, ent.Comp.Alert);
+    }
+
+    private void OnBodyMapInit(EntityUid uid, BodyComponent component, MapInitEvent args)
+    {
+        if (component.Prototype is null)
             return;
 
         // One-time setup
         // Obviously can't run in Init to avoid double-spawns on save / load.
-        var prototype = Prototypes.Index(ent.Comp.Prototype.Value);
-        MapInitBody(ent, prototype);
+        var prototype = Prototypes.Index(component.Prototype.Value);
+        MapInitBody(uid, prototype);
+
+        var ev = new BodyInitEvent(component);
+        RaiseLocalEvent(uid, ev);
     }
 
     private void MapInitBody(EntityUid bodyEntity, BodyPrototype prototype)
@@ -125,6 +164,50 @@ public partial class SharedBodySystem
     private void OnBodyCanDrag(Entity<BodyComponent> ent, ref CanDragEvent args)
     {
         args.Handled = true;
+    }
+
+    private void OnRejuvenate(EntityUid uid, BodyComponent component, RejuvenateEvent args)
+    {
+        var parts = GetBodyDamageable(uid, component);
+
+        foreach ((var partUid, var partDamageable) in parts)
+        {
+            RaiseLocalEvent(partUid, new RejuvenateEvent());
+        }
+    }
+    private void OnIrradiatedEvent(EntityUid uid, BodyComponent component, OnIrradiatedEvent args)
+    {
+        var damageable = GetBodyDamageable(uid, component).Values;
+
+        var mostFrequent = damageable
+            .GroupBy(item => item.RadiationDamageTypeIDs)
+            .OrderByDescending(group => group.Count())
+            .FirstOrDefault();
+
+        if (mostFrequent == null || !mostFrequent.TryFirstOrDefault(out var radiation))
+            return;
+
+        _damageable.Irradiate(uid, args.RadsPerSecond, radiation.RadiationDamageTypeIDs);
+    }
+
+    protected void RelayToBody<T>(EntityUid uid, BodyPartComponent component, T args) where T : class
+    {
+        if (component.Body == null)
+            return;
+
+        var ev = new LimbBodyRelayedEvent<T>(args, uid);
+
+        RaiseLocalEvent(component.Body.Value, ref ev);
+    }
+
+    protected void RelayRefToBody<T>(EntityUid uid, BodyPartComponent component, ref T args) where T : class
+    {
+        if (component.Body == null)
+            return;
+
+        var ev = new LimbBodyRelayedEvent<T>(args, uid);
+
+        RaiseLocalEvent(component.Body.Value, ref ev);
     }
 
     /// <summary>
@@ -231,13 +314,20 @@ public partial class SharedBodySystem
         BodyComponent? body = null,
         BodyPartComponent? rootPart = null)
     {
-        if (id is null
-            || !Resolve(id.Value, ref body, logMissing: false)
-            || body.RootContainer.ContainedEntity is null
-            || !Resolve(body.RootContainer.ContainedEntity.Value, ref rootPart))
-        {
+        if (id is null)
             yield break;
-        }
+
+        if (!Resolve(id.Value, ref body, logMissing: false))
+            yield break;
+
+        if (body.RootContainer is null)
+            yield break;
+
+        if (body.RootContainer.ContainedEntity is null)
+            yield break;
+
+        if (!Resolve(body.RootContainer.ContainedEntity.Value, ref rootPart))
+            yield break;
 
         foreach (var child in GetBodyPartChildren(body.RootContainer.ContainedEntity.Value, rootPart))
         {
@@ -281,6 +371,87 @@ public partial class SharedBodySystem
         {
             yield return slot;
         }
+    }
+
+    public DamageSpecifier? GetBodyDamage(
+        EntityUid bodyId,
+        BodyComponent? body = null)
+    {
+        if (!Resolve(bodyId, ref body, false))
+        {
+            return null;
+        }
+
+        DamageSpecifier totalDamage = new();
+
+        foreach (var (partUid, partComp) in GetBodyChildren(bodyId, body))
+        {
+            if (!TryComp<DamageableComponent>(partUid, out var partDamageComp))
+                continue;
+
+            totalDamage += partDamageComp.Damage * partComp.OverallDamageScale;
+        }
+
+        return totalDamage;
+    }
+
+    public Dictionary<EntityUid, DamageableComponent> GetBodyDamageable(
+        EntityUid? bodyId,
+        BodyComponent? body = null)
+    {
+        Dictionary<EntityUid, DamageableComponent> damageableComps = new ();
+
+        if (bodyId == null || !Resolve(bodyId.Value, ref body, false))
+            return damageableComps;
+
+        foreach (var (part, _) in GetBodyChildren(bodyId, body))
+        {
+            if (!TryComp<DamageableComponent>(part, out var partDamageComp))
+                continue;
+
+            damageableComps.Add(part, partDamageComp);
+        }
+
+        return damageableComps;
+    }
+
+    public ProtoId<DamageContainerPrototype>? GetMostFrequentDamageContainer(
+        EntityUid bodyId,
+        BodyComponent? body = null)
+    {
+        if (!Resolve(bodyId, ref body, false))
+        {
+            return null;
+        }
+
+        List<ProtoId<DamageContainerPrototype>?> damageContainers = new ();
+
+        foreach (var (part, _) in GetBodyChildren(bodyId, body))
+        {
+            if (!TryComp<DamageableComponent>(part, out var partDamageComp))
+                continue;
+
+            damageContainers.Add(partDamageComp.DamageContainerID);
+        }
+
+        return GetMostFrequentDamageContainer(damageContainers);
+    }
+
+    public ProtoId<DamageContainerPrototype>? GetMostFrequentDamageContainer(IEnumerable<ProtoId<DamageContainerPrototype>?> data)
+    {
+        if (data == null || !data.Any())
+        {
+            throw new ArgumentException($"{data} is null or empty.");
+        }
+
+        var mostFrequent = data
+            .GroupBy(item => item)
+            .OrderByDescending(group => group.Count())
+            .FirstOrDefault();
+
+        return mostFrequent != null
+            ? mostFrequent.Key
+            : throw new InvalidOperationException($"Unexpected error during processing {data}.");
     }
 
     public virtual HashSet<EntityUid> GibBody(

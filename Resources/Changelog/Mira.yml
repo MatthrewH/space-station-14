@@ -689,3 +689,247 @@ Entries:
     type: Tweak
   id: 102
   time: '2024-10-20T15:10:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Added visual effects when shooting at any living being
+    type: Add
+  id: 103
+  time: '2024-10-20T23:50:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: T-ray and gas analyser now spawn in the pockets of engineering and atmos at roundstart.
+    type: Tweak
+  - message: Engineering, atmos and CE now spawn with insuls equipped.
+    type: Tweak
+  id: 104
+  time: '2024-10-26T03:20:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Limbs can now take individual damage
+    type: Add
+  - message: Limbs can now be aimed at with a radial menu
+    type: Add
+  id: 105
+  time: '2024-10-26T17:15:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Armor only protects certain limbs
+    type: Tweak
+  id: 106
+  time: '2024-10-28T20:35:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Aiming at limbs has a chance to miss which scales with movement
+    type: Tweak
+  id: 107
+  time: '2024-10-29T22:45:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: New evac shuttle for mir
+    type: Tweak
+  id: 108
+  time: '2024-11-02T01:15:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Chemicals now heal the same overall damage
+    type: Fix
+  - message: Topicals now properly check the recievers damage
+    type: Fix
+  - message: The limb doll is more accurate representing your limbs current health
+    type: Fix
+  id: 109
+  time: '2024-11-02T06:10:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Zombies can only be harmed in the head
+    type: Tweak
+  id: 110
+  time: '2024-11-03T02:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Added mats to dry your feet
+    type: Add
+  id: 111
+  time: '2024-11-03T07:10:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Tweaked the radiation output of the miniaturized singulo on mir evac shutle
+    type: Tweak
+  id: 112
+  time: '2024-11-03T07:18:08.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Fixed minor issues with the map mir (e.g, lights in the wrong place, missing decals)
+    type: Fix
+    id: 113
+    time: '2024-11-03T07:18:08.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Replaced swabs in the NutriMax with a box of swabs and added a bin bag to the vendor to put the swabs after your done.
+    type: Tweak
+    id: 114
+    time: '2024-11-04T07:20:25.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Increased the capacity of some APCs on the map mir.
+    type: Tweak
+    id: 115
+    time: '2024-11-04T07:20:08.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+    - message: Increased capacity of APCs on the mir evac shuttle to help with docking.
+      type: Fix
+      id: 116
+      time: '2024-11-06T07:20:08.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Damage can no longer go negative.
+    type: Fix
+  - message: Cyborgs can now take damage again.
+    type: Fix
+  id: 117
+  time: '2024-11-11T17:20:00.0000000+00:00'
+- author: aspiffyfellow
+  changes:
+  - message: Added back salv spawns to mir.
+    type: Fix
+  id: 118
+  time: '2024-11-11T20:16:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Vox has a right hand
+    type: Fix
+  - message: More mobs have the damage part selector
+    type: Fix
+  id: 119
+  time: '2024-11-16T20:45:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Reach has been de-rotated
+    type: Remove
+  id: 120
+  time: '2024-11-16T20:50:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Anti materiel can now penitrate
+    type: Add
+  id: 121
+  time: '2024-11-18T02:10:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Slimes can have a seperate hair colour
+    type: Add
+  id: 122
+  time: '2024-11-19T11:50:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Added animations for using tools and opening backpacks or belts
+    type: Add
+  id: 123
+  time: '2024-11-21T16:50:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Skeletons can now heal with milk again
+    type: Fix
+  id: 124
+  time: '2024-11-23T14:25:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Limbs can no longer be damaged when they are "dead" after enough damage
+    type: Fix
+  id: 125
+  time: '2024-11-29T17:25:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: More maps can roll on low pop
+    type: Tweak
+  id: 126
+  time: '2024-12-02T04:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Pens embed into humans and animals
+    type: Add
+  id: 127
+  time: '2024-12-03T09:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Ensured limbs damage can always make the body die
+    type: Fix
+  id: 128
+  time: '2024-12-08T05:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Electrical shocking is scaled off the supplied power
+    type: Add
+  id: 129
+  time: '2024-12-08T14:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Slimes and geras no longer have damageable legs
+    type: Tweak
+  id: 130
+  time: '2024-12-11T14:40:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Meteors take longer to ocure and happen less frequently
+    type: Tweak
+  id: 130
+  time: '2024-12-11T14:50:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Headphones can now play music for the wearer
+    type: Add
+  id: 131
+  time: '2024-12-12T17:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: When attacking a dead limb it will flash violet
+    type: Add
+  - message: When attacking a limb that doesnt exist it will flash green
+    type: Add
+  id: 132
+  time: '2024-12-13T11:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Gibbing is based on total damage
+    type: Tweak
+  id: 133
+  time: '2024-12-20T00:15:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Entities doesnt flash violet when dead
+    type: Fix
+  id: 134
+  time: '2024-12-20T00:25:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Medibots now inject again
+    type: Fix
+  id: 135
+  time: '2024-12-20T00:40:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Grappling hooks and spears now embed again
+    type: Fix
+  id: 136
+  time: '2024-12-20T01:00:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Medhud icons now show on humans again
+    type: Fix
+  - message: Medhud healthbar is now more accurate
+    type: Fix
+  id: 137
+  time: '2024-12-20T01:15:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: If a zombie does not have a head the whole body is damageable
+    type: Fix
+  id: 138
+  time: '2024-12-20T02:15:00.0000000+00:00'
+- author: Doctor-Cpu
+  changes:
+  - message: Guns can be dual wielded
+    type: Add
+  id: 139
+  time: '2024-12-20T03:30:00.0000000+00:00'

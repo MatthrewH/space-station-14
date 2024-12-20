@@ -791,4 +791,67 @@ public partial class SharedBodySystem
     }
 
     #endregion
+
+    public BodyPartLayer BodyPartToLayer(BodyPartType type, BodyPartSymmetry side)
+    {
+        return BodyPartToLayer(new BodyPart(type, side));
+    }
+
+    public BodyPartLayer BodyPartToLayer(BodyPart bodyPart)
+    {
+        return bodyPart.Type switch
+        {
+            BodyPartType.Head => BodyPartLayer.Head,
+            BodyPartType.Torso => BodyPartLayer.Torso,
+            BodyPartType.Arm => bodyPart.Side switch
+            {
+                BodyPartSymmetry.Left => BodyPartLayer.LArm,
+                BodyPartSymmetry.Right => BodyPartLayer.RArm,
+                _ => BodyPartLayer.None
+            },
+            BodyPartType.Leg => bodyPart.Side switch
+            {
+                BodyPartSymmetry.Left => BodyPartLayer.LLeg,
+                BodyPartSymmetry.Right => BodyPartLayer.RLeg,
+                _ => BodyPartLayer.None
+            },
+            _ => BodyPartLayer.None
+        };
+    }
+
+    public Dictionary<BodyPart, float> GetPartsScale(EntityUid target, BodyComponent? component = null)
+    {
+        Dictionary<BodyPart, float> scale = new();
+
+        var parts = GetBodyChildren(target, component);
+
+        foreach (var (_, partComp) in parts)
+        {
+            var bodyPart = new BodyPart(partComp.PartType, partComp.Symmetry);
+            scale.Add(bodyPart, partComp.OverallDamageScale);
+        }
+
+        return scale;
+    }
+
+    public void SetPartsScale(EntityUid target, Dictionary<BodyPart, float> scale, BodyComponent? component = null)
+    {
+        var parts = GetBodyChildren(target, component);
+
+        foreach (var (partUid, partComp) in parts)
+        {
+            foreach (var part in scale)
+            {
+                if (part.Key.Type != partComp.PartType)
+                    continue;
+
+                if (part.Key.Side != partComp.Symmetry)
+                    continue;
+
+                partComp.OverallDamageScale = part.Value;
+                Dirty(partUid, partComp);
+                break;
+            }
+        }
+    }
 }

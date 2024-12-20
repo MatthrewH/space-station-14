@@ -11,8 +11,7 @@
     sprite: Clothing/OuterClothing/Bio/general.rsi
   - type: Armor
     modifiers:
-      coefficients:
-        Caustic: 0.5
+      [ Torso, Arm, Leg ] : { coefficients: { Caustic: 0.5 } }
 
 - type: entity
   parent: ClothingOuterBioGeneral

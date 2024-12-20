@@ -88,7 +88,7 @@
         probability: 0.25
   - type: Body
     prototype: Slimes
-    requiredLegs: 1
+    requiredLegs: 2
   - type: MeleeWeapon
     altDisarm: false
     soundHit:
@@ -184,10 +184,9 @@
   - type: SpeciesLanguage
     spokenLanguages:
     - Slime
-
   - type: Body
     prototype: Geras
-    requiredLegs: 1
+    requiredLegs: 2
   - type: PassiveDamage # copied from slime person scaled
     allowedStates:
     - Alive
@@ -219,6 +218,8 @@
     interfaces:
       enum.StorageUiKey.Key:
         type: StorageBoundUserInterface
+      enum.DamageSelectorUiKey.Key:
+        type: DamageSelectorBoundUserInterface
   - type: PersistantSlimeStorage
 
 - type: entity

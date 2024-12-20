@@ -32,6 +32,16 @@ public sealed class ProjectileSystem : SharedProjectileSystem
             return;
 
         var target = args.OtherEntity;
+
+        if (component.Shooter != null)
+        {
+            var shooterEv = new ProjectileShooterHitAttemptEvent(target, false);
+            RaiseLocalEvent(component.Shooter.Value, ref shooterEv);
+
+            if (shooterEv.Cancelled)
+                return;
+        }
+
         // it's here so this check is only done once before possible hit
         var attemptEv = new ProjectileReflectAttemptEvent(uid, component, false);
         RaiseLocalEvent(target, ref attemptEv);
@@ -40,6 +50,8 @@ public sealed class ProjectileSystem : SharedProjectileSystem
             SetShooter(uid, component, target);
             return;
         }
+
+        component.DamagedEntity = true;
 
         var ev = new ProjectileHitEvent(component.Damage, target, component.Shooter);
         RaiseLocalEvent(uid, ref ev);
@@ -66,8 +78,6 @@ public sealed class ProjectileSystem : SharedProjectileSystem
             _guns.PlayImpactSound(target, modifiedDamage, component.SoundHit, component.ForceSound);
             _sharedCameraRecoil.KickCamera(target, direction);
         }
-
-        component.DamagedEntity = true;
 
         if (component.DeleteOnCollide)
             QueueDel(uid);

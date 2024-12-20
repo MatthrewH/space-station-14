@@ -21,9 +21,20 @@ namespace Content.Server.Destructible.Thresholds.Triggers
         [DataField("damage", required: true)]
         public int Damage { get; set; } = default!;
 
-        public bool Reached(DamageableComponent damageable, DestructibleSystem system)
+        [DataField]
+        public bool Repeatable = false;
+
+        public bool Reached(DestructibleSystem system, DamageSpecifier totalDamage, bool isPositive, DamageSpecifier? deltaDamage, EntityUid? origin = null)
         {
-            return damageable.DamagePerGroup[DamageGroup] >= Damage;
+            if (!Repeatable)
+                return totalDamage.DamageDict[DamageGroup] >= Damage;
+
+            if (deltaDamage == null ||
+                !system.PrototypeManager.TryIndex<DamageGroupPrototype>(DamageGroup, out var damageGroupPrototype) ||
+                !deltaDamage.TryGetDamageInGroup(damageGroupPrototype, out var value))
+                return false;
+
+            return value >= Damage;
         }
     }
 }

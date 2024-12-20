@@ -401,8 +401,7 @@
   - type: Destructible
     thresholds:
     - trigger:
-        !type:DamageTypeTrigger
-        damageType: Blunt
+        !type:DamageTrigger
         damage: 10
       behaviors:
       - !type:GibBehavior { }
@@ -421,7 +420,9 @@
 
 - type: entity
   name: cockroach
-  parent: MobBaseCockroach
+  parent:
+  - MobDamageable
+  - MobBaseCockroach
   id: MobCockroach
   description: This station is just crawling with bugs.
   components:
@@ -586,8 +587,7 @@
   - type: Destructible
     thresholds:
     - trigger:
-        !type:DamageTypeTrigger
-        damageType: Blunt
+        !type:DamageTrigger
         damage: 60
       behaviors:
       - !type:GibBehavior { }
@@ -599,6 +599,8 @@
     interfaces:
       enum.StrippingUiKey.Key:
         type: StrippableBoundUserInterface
+      enum.DamageSelectorUiKey.Key:
+        type: DamageSelectorBoundUserInterface
   - type: InventorySlots
   - type: Inventory
     speciesId: hamster
@@ -1456,7 +1458,6 @@
           False: {visible: false}
   - type: Body
     prototype: Primate
-    requiredLegs: 1 # TODO: More than 1 leg
   - type: CreamPied
   - type: FireVisuals
     sprite: Mobs/Effects/onfire.rsi

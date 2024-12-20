@@ -1,5 +1,10 @@
 using System.Linq;
+using Content.Shared.Body.Components;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.Damage.DamageSelector;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared.Effects;
 using Content.Shared.FixedPoint;
 using Content.Shared.Inventory;
 using Content.Shared.Mind.Components;
@@ -9,6 +14,7 @@ using Content.Shared.Radiation.Events;
 using Content.Shared.Rejuvenate;
 using Robust.Shared.GameStates;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -20,8 +26,12 @@ namespace Content.Shared.Damage
         [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
         [Dependency] private readonly INetManager _netMan = default!;
         [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
+        [Dependency] private readonly SharedBodySystem _body = default!;
+        [Dependency] private readonly SharedColorFlashEffectSystem _color = default!;
+
 
         private EntityQuery<AppearanceComponent> _appearanceQuery;
+        private EntityQuery<BodyComponent> _bodyQuery;
         private EntityQuery<DamageableComponent> _damageableQuery;
         private EntityQuery<MindContainerComponent> _mindContainerQuery;
 
@@ -34,6 +44,7 @@ namespace Content.Shared.Damage
             SubscribeLocalEvent<DamageableComponent, RejuvenateEvent>(OnRejuvenate);
 
             _appearanceQuery = GetEntityQuery<AppearanceComponent>();
+            _bodyQuery = GetEntityQuery<BodyComponent>();
             _damageableQuery = GetEntityQuery<DamageableComponent>();
             _mindContainerQuery = GetEntityQuery<MindContainerComponent>();
         }
@@ -42,6 +53,32 @@ namespace Content.Shared.Damage
         ///     Initialize a damageable component
         /// </summary>
         private void DamageableInit(EntityUid uid, DamageableComponent component, ComponentInit _)
+        {
+            // for the general body
+            // tracks the overall health of the mob
+            InitDamageTypes(component);
+
+            if (!TryComp<BodyComponent>(uid, out var bodyComp) ||
+                !_prototypeManager.TryIndex(bodyComp.Prototype, out var bodyProto))
+            {
+                return;
+            }
+
+            foreach ((var _, var part) in bodyProto.Slots)
+            {
+                if (part.Part == null)
+                    continue;
+
+                var partId = _prototypeManager.Index(part.Part.Value);
+
+                if (!partId.TryGetComponent<DamageableComponent>(out var partDamagableComp))
+                    continue;
+
+                InitDamageTypes(partDamagableComp);
+            }
+        }
+
+        private void InitDamageTypes(DamageableComponent component)
         {
             if (component.DamageContainerID != null &&
                 _prototypeManager.TryIndex<DamageContainerPrototype>(component.DamageContainerID,
@@ -83,10 +120,14 @@ namespace Content.Shared.Damage
         ///     Useful for some unfriendly folk. Also ensures that cached values are updated and that a damage changed
         ///     event is raised.
         /// </remarks>
-        public void SetDamage(EntityUid uid, DamageableComponent damageable, DamageSpecifier damage)
+        public void SetDamage(EntityUid uid, DamageableComponent damageable, DamageSpecifier damage, bool update = false, EntityUid? origin = null)
         {
+            DamageSpecifier? delta = null;
+            if (update)
+                delta = damage - damageable.Damage;
+
             damageable.Damage = damage;
-            DamageChanged(uid, damageable);
+            DamageChanged(uid, damageable, delta, origin: origin);
         }
 
         /// <summary>
@@ -97,16 +138,16 @@ namespace Content.Shared.Damage
         ///     The damage changed event is used by other systems, such as damage thresholds.
         /// </remarks>
         public void DamageChanged(EntityUid uid, DamageableComponent component, DamageSpecifier? damageDelta = null,
-            bool interruptsDoAfters = true, EntityUid? origin = null)
+            bool interruptsDoAfters = true, EntityUid? origin = null, EntityUid? body = null)
         {
             component.Damage.GetDamagePerGroup(_prototypeManager, component.DamagePerGroup);
             component.TotalDamage = component.Damage.GetTotal();
             Dirty(uid, component);
 
-            if (_appearanceQuery.TryGetComponent(uid, out var appearance) && damageDelta != null)
+            if (_appearanceQuery.TryGetComponent(body ?? uid, out var appearance) && damageDelta != null)
             {
                 var data = new DamageVisualizerGroupData(component.DamagePerGroup.Keys.ToList());
-                _appearance.SetData(uid, DamageVisualizerKeys.DamageUpdateGroups, data, appearance);
+                _appearance.SetData(body ?? uid, DamageVisualizerKeys.DamageUpdateGroups, data, appearance);
             }
             RaiseLocalEvent(uid, new DamageChangedEvent(component, damageDelta, interruptsDoAfters, origin));
         }
@@ -124,11 +165,10 @@ namespace Content.Shared.Damage
         ///     null if the user had no applicable components that can take damage.
         /// </returns>
         public DamageSpecifier? TryChangeDamage(EntityUid? uid, DamageSpecifier damage, bool ignoreResistances = false,
-            bool interruptsDoAfters = true, DamageableComponent? damageable = null, EntityUid? origin = null)
+            bool interruptsDoAfters = true, DamageableComponent? damageable = null, BodyComponent? bodyComp = null, EntityUid? origin = null, bool splitLimbDamage = true)
         {
-            if (!uid.HasValue || !_damageableQuery.Resolve(uid.Value, ref damageable, false))
+            if (!uid.HasValue)
             {
-                // TODO BODY SYSTEM pass damage onto body system
                 return null;
             }
 
@@ -137,12 +177,129 @@ namespace Content.Shared.Damage
                 return damage;
             }
 
+            if (_damageableQuery.Resolve(uid.Value, ref damageable, false))
+            {
+                EntityUid? bodyUid = null;
+
+                if (TryComp<BodyPartComponent>(uid, out var bodyPartComp))
+                {
+                    bodyUid = bodyPartComp.Body;
+                }
+                return ChangeDamage(uid.Value, damage, damageable, ignoreResistances, interruptsDoAfters, origin, body: bodyUid);
+            }
+
+            if (!_bodyQuery.Resolve(uid.Value, ref bodyComp, false))
+            {
+                return null;
+            }
+
+            var damageDict = TryChangeDamageBody(uid, damage, ignoreResistances, interruptsDoAfters, bodyComp, origin, splitLimbDamage);
+
+            if (damageDict == null)
+                return null;
+
+            DamageSpecifier totalDamage = new();
+
+            foreach (var (_, partDamage) in damageDict)
+            {
+                totalDamage += partDamage;
+            }
+
+            return totalDamage;
+        }
+
+        public Dictionary<EntityUid, DamageSpecifier>? TryChangeDamageBody(EntityUid? uid, DamageSpecifier damage, bool ignoreResistances = false,
+            bool interruptsDoAfters = true, BodyComponent? body = null, EntityUid? origin = null, bool splitLimbDamage = true)
+        {
+            if (!uid.HasValue || !_bodyQuery.Resolve(uid.Value, ref body, false))
+            {
+                return null;
+            }
+
+            Dictionary<EntityUid, DamageSpecifier> damageDict = new ();
+
+            if (damage.Empty)
+            {
+                return damageDict;
+            }
+
+            var parts = _body.GetBodyDamageable(uid.Value, body);
+
+            var damagePerPart = damage / parts.Count();
+
+            if (TryComp<DamagePartSelectorComponent>(origin, out var damageSelectorComp))
+            {
+                EntityUid? damagedBody = EntityUid.Invalid;
+
+                foreach (var (part, damageable) in parts)
+                {
+                    if (!TryComp<BodyPartComponent>(part, out var partComp))
+                        continue;
+
+                    // cant deal damage so we need to flash the entity
+                    if (partComp.OverallDamageScale == 0)
+                        continue;
+
+                    if (damagedBody != null)
+                        damagedBody = partComp.Body;
+
+                    if (damageSelectorComp.SelectedPart.Type != partComp.PartType || damageSelectorComp.SelectedPart.Side != partComp.Symmetry)
+                        continue;
+
+                    var newDamage = ChangeDamage(part, damage, damageable, ignoreResistances, interruptsDoAfters, origin, partComp.PartType, uid.Value);
+
+                    if (newDamage == null)
+                        continue;
+
+                    damageDict.Add(part, newDamage);
+                    damagedBody = null;
+                }
+
+                if (damagedBody != null && origin != null)
+                    _color.RaiseEffect(Color.LimeGreen, new List<EntityUid>() { damagedBody.Value }, Filter.Pvs(damagedBody.Value, entityManager: EntityManager));
+
+                return damageDict;
+            }
+
+            foreach (var (part, damageable) in parts)
+            {
+                if (!TryComp<BodyPartComponent>(part, out var partComp))
+                    continue;
+
+                var limbDamage = damage;
+
+                if (splitLimbDamage)
+                    limbDamage = damagePerPart;
+
+                var newDamage = ChangeDamage(part, limbDamage, damageable, ignoreResistances, interruptsDoAfters, origin, partComp.PartType, uid.Value);
+
+                if (newDamage == null)
+                    continue;
+
+                damageDict.Add(part, newDamage);
+            }
+
+            return damageDict;
+        }
+
+        internal DamageSpecifier? ChangeDamage(EntityUid uid, DamageSpecifier damage, DamageableComponent  damageable,
+            bool ignoreResistances, bool interruptsDoAfters, EntityUid? origin, BodyPartType? partType = null, EntityUid? body = null)
+        {
             var before = new BeforeDamageChangedEvent(damage, origin);
-            RaiseLocalEvent(uid.Value, ref before);
+            RaiseLocalEvent(uid, ref before);
 
             if (before.Cancelled)
                 return null;
 
+            if (partType == null)
+                return TryApplyDamage(uid, damage, ignoreResistances, interruptsDoAfters, damageable, origin);
+
+            return TryApplyDamage(uid, damage, ignoreResistances, interruptsDoAfters, damageable, origin, partType, body);
+        }
+
+        internal DamageSpecifier? TryApplyDamage(EntityUid uid, DamageSpecifier damage, bool ignoreResistances,
+            bool interruptsDoAfters, DamageableComponent damageable, EntityUid? origin, BodyPartType? part = null, EntityUid? body = null)
+        {
             // Apply resistances
             if (!ignoreResistances)
             {
@@ -154,8 +311,9 @@ namespace Content.Shared.Damage
                     damage = DamageSpecifier.ApplyModifierSet(damage, modifierSet);
                 }
 
-                var ev = new DamageModifyEvent(damage, origin);
-                RaiseLocalEvent(uid.Value, ev);
+                var eventUid = body ?? uid;
+                var ev = new DamageModifyEvent(damage, origin, part);
+                RaiseLocalEvent(eventUid, ev);
                 damage = ev.Damage;
 
                 if (damage.Empty)
@@ -186,7 +344,7 @@ namespace Content.Shared.Damage
             }
 
             if (delta.DamageDict.Count > 0)
-                DamageChanged(uid.Value, damageable, delta, interruptsDoAfters, origin);
+                DamageChanged(uid, damageable, delta, interruptsDoAfters, origin, body);
 
             return delta;
         }
@@ -237,13 +395,17 @@ namespace Content.Shared.Damage
             }
         }
 
+
         private void OnIrradiated(EntityUid uid, DamageableComponent component, OnIrradiatedEvent args)
         {
-            var damageValue = FixedPoint2.New(args.TotalRads);
+            Irradiate(uid, args.TotalRads, component.RadiationDamageTypeIDs);
+        }
 
+        public void Irradiate(EntityUid uid, FixedPoint2 damageValue, List<ProtoId<DamageTypePrototype>> radiationIDs)
+        {
             // Radiation should really just be a damage group instead of a list of types.
             DamageSpecifier damage = new();
-            foreach (var typeId in component.RadiationDamageTypeIDs)
+            foreach (var typeId in radiationIDs)
             {
                 damage.DamageDict.Add(typeId, damageValue);
             }
@@ -276,8 +438,13 @@ namespace Content.Shared.Damage
 
             if (!delta.Empty)
             {
+                EntityUid? body = null;
+
+                if (TryComp<BodyPartComponent>(uid, out var partComp) && partComp.Body != null)
+                    body = partComp.Body.Value;
+
                 component.Damage = newDamage;
-                DamageChanged(uid, component, delta);
+                DamageChanged(uid, component, delta, body: body);
             }
         }
     }
@@ -303,12 +470,14 @@ namespace Content.Shared.Damage
         public readonly DamageSpecifier OriginalDamage;
         public DamageSpecifier Damage;
         public EntityUid? Origin;
+        public BodyPartType? BodyPart;
 
-        public DamageModifyEvent(DamageSpecifier damage, EntityUid? origin = null)
+        public DamageModifyEvent(DamageSpecifier damage, EntityUid? origin = null, BodyPartType? part = null)
         {
             OriginalDamage = damage;
             Damage = damage;
             Origin = origin;
+            BodyPart = part;
         }
     }
 

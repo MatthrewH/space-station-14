@@ -14,6 +14,8 @@ using Content.Server.NPC.Systems;
 using Content.Server.Roles;
 using Content.Server.Speech.Components;
 using Content.Server.Temperature.Components;
+using Content.Shared.Body.Components;
+using Content.Shared.Body.Systems;
 using Content.Shared.CombatMode;
 using Content.Shared.CombatMode.Pacification;
 using Content.Shared.Damage;
@@ -47,6 +49,7 @@ namespace Content.Server.Zombies;
 /// </remarks>
 public sealed partial class ZombieSystem
 {
+    [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly ServerInventorySystem _inventory = default!;
     [Dependency] private readonly NpcFactionSystem _faction = default!;
@@ -187,9 +190,6 @@ public sealed partial class ZombieSystem
 
         Dirty(target, melee);
 
-        //The zombie gets the assigned damage weaknesses and strengths
-        _damageable.SetDamageModifierSetId(target, "Zombie");
-
         //This makes it so the zombie doesn't take bloodloss damage.
         //NOTE: they are supposed to bleed, just not take damage
         _bloodstream.SetBloodLossThreshold(target, 0f);
@@ -213,8 +213,52 @@ public sealed partial class ZombieSystem
 
         //Heals the zombie from all the damage it took while human
         if (TryComp<DamageableComponent>(target, out var damageablecomp))
+        {
             _damageable.SetAllDamage(target, damageablecomp, 0);
+
+            //The zombie gets the assigned damage weaknesses and strengths
+            _damageable.SetDamageModifierSetId(target, "Zombie");
+        }
+
         _mobState.ChangeMobState(target, MobState.Alive);
+
+        if (TryComp<BodyComponent>(target, out var bodyComp))
+        {
+            zombiecomp.BeforeZombifiedPartScales = _body.GetPartsScale(target, bodyComp);
+
+            var canRecieveDamage = false;
+
+            foreach (var (beforePart, _) in zombiecomp.BeforeZombifiedPartScales)
+            {
+                foreach (var (part, scale) in zombiecomp.PartScales)
+                {
+                    if (beforePart.Type != part.Type || beforePart.Side != part.Side)
+                        continue;
+
+                    // make sure they can get damaged with the new part scales
+                    if (scale <= 0)
+                        continue;
+
+                    _body.SetPartsScale(target, zombiecomp.PartScales, bodyComp);
+                    canRecieveDamage = true;
+                    break;
+                }
+
+                if (canRecieveDamage)
+                    break;
+            }
+
+            foreach (var (part, _) in _body.GetBodyChildren(target, bodyComp))
+            {
+                if (!TryComp<DamageableComponent>(part, out var partDamageableComp))
+                    continue;
+
+                _damageable.SetAllDamage(part, partDamageableComp, 0);
+
+                //The zombie gets the assigned damage weaknesses and strengths
+                _damageable.SetDamageModifierSetId(part, "Zombie");
+            }
+        }
 
         _faction.ClearFactions(target, dirty: false);
         _faction.AddFaction(target, "Zombie");
